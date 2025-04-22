@@ -1,20 +1,35 @@
-function getConfiguration(config) {
-    // This function allows you to indicate general configuration values
-    // for all devices of this model.
+function getConfiguration(config)
+{
+  // This function allows you to indicate general configuration values
+  // for all devices of this model.
 
-    // Depending on the meaning of the "device address" in this device, 
-    // you may want to change the label that is used to refer to the 
-    // address in the user interface.
-    // For instance, if the address of the device is actually a MAC 
-    // address, you may want to use the code below.
-
-    config.addressLabel = { en: "DevEUI", es: "DevEUI" };
+  // Depending on the meaning of the "device address" in this device, 
+  // you may want to change the label that is used to refer to the 
+  // address in the user interface.
+  // For instance, if the address of the device is actually a MAC 
+  // address, you may want to use the code below.
+  
+  config.addressLabel = {en: "DevEUI", es: "DevEUI"};
 }
 
-function getEndpoints(deviceAddress, endpoints) {
+function getEndpoints(deviceAddress, endpoints)
+{
+  // This function allows you to indicate the initial endpoint configuration
+  // when a device is created using this model. This improves end-user 
+  // experience significantly, because it allows the platform to create
+  // all endpoints included in the device automatically when the device
+  // is created.
 
-    endpoints.addEndpoint("1", "Battery", endpointType.voltageSensor);
-    endpoints.addEndpoint("2", "Pressure", endpointType.pressureSensor);
+  // In the code below, two endpoints are created. The first is a
+  // temperature sensor, while the second one is a carbon dioxide sensor.
+
+  var sensor1 = endpoints.addEndpoint("1", "Pipe Pressure", endpointType.genericSensor);
+  sensor1.variableTypeId = 1370;
+
+  var sensor2 = endpoints.addEndpoint("2", "Capacity", endpointType.genericSensor);
+  sensor2.variableTypeId = 1371;
+
+  // endpoints.addEndpoint("2", "CO2 sensor", endpointType.ppmConcentrationSensor, ppmConcentrationSensorSubType.carbonDioxide);
 }
 
 function validateDeviceAddress(address, result)
