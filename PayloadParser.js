@@ -1,48 +1,34 @@
-// Test:  017564 037B0A00
+function parseUplink(device, payload) 
+{
+    var data = milesightDeviceDecode(payload.asBytes(), 85);
 
-function parseUplink(device, payload) {
 
-    var payloadb = payload.asBytes();
-    var decoded = Decoder(payloadb, payload.port)
-    env.log(decoded);
+    var pressure = data.pressure;
 
-    // Store battery
-    if (decoded.battery != null) {
-        var sensor1 = device.endpoints.byAddress("1");
+   
+    var liters = (75 / 467) * pressure;
 
-        if (sensor1 != null)
-            sensor1.updateVoltageSensorStatus(decoded.battery);
-            device.updateDeviceBattery({ voltage: decoded.battery });
+  
+    device.endpoints.byAddress("1").updateGenericSensorStatus(pressure);
 
-    };
+    device.endpoints.byAddress("2").updateGenericSensorStatus(Number(liters.toFixed(2)));
 
-    // Store Pressure
-    if (decoded.pressure != null) {
-        var sensor2 = device.endpoints.byAddress("2");
-
-        if (sensor2 != null)
-            sensor2.updatePressureSensorStatus((decoded.pressure)*1000);
-    };
 }
 
 
-/**
- * Payload Decoder for The Things Network
- *
- * Copyright 2023 Milesight IoT
- *
- * @product EM500-PP
- */
-function Decoder(bytes, port) {
-    return milesight(bytes);
+function buildDownlink(device, endpoint, command, payload) 
+{ 
+	
+
 }
 
-function milesight(bytes) {
+function milesightDeviceDecode(bytes) {
     var decoded = {};
 
     for (var i = 0; i < bytes.length; ) {
         var channel_id = bytes[i++];
         var channel_type = bytes[i++];
+
         // BATTERY
         if (channel_id === 0x01 && channel_type === 0x75) {
             decoded.battery = bytes[i];
@@ -52,6 +38,16 @@ function milesight(bytes) {
         else if (channel_id === 0x03 && channel_type === 0x7b) {
             decoded.pressure = readInt16LE(bytes.slice(i, i + 2));
             i += 2;
+        }
+        // HISTROY DATA
+        else if (channel_id === 0x20 && channel_type === 0xce) {
+            var point = {};
+            point.timestamp = readUInt32LE(bytes.slice(i, i + 4));
+            point.pressure = readInt16LE(bytes.slice(i + 4, i + 6));
+
+            decoded.history = decoded.history || [];
+            decoded.history.push(point);
+            i += 6;
         } else {
             break;
         }
